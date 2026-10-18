@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#172554">
+<title>Mi lista de Hora de Aventuras</title>
+<style>
+:root{color-scheme:light;--bg:#f3f6fc;--card:#fff;--ink:#172033;--muted:#64748b;--blue:#2563eb;--line:#dbe4f0}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:var(--ink)}
+header{background:linear-gradient(135deg,#172554,#2563eb);color:#fff;padding:24px 16px 20px}
+main{max-width:850px;margin:auto;padding:16px}
+h1{font-size:1.5rem;margin:0 0 8px}
+header p{margin:0;color:#dbeafe;font-size:.95rem}
+.progress-wrap{margin-top:18px;background:#ffffff30;border-radius:12px;padding:12px}
+.progress-top{display:flex;justify-content:space-between;gap:10px;font-size:.9rem;font-weight:700}
+progress{width:100%;height:10px;margin-top:8px;accent-color:#a7f3d0}
+.toolbar{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0}
+button,.button{border:0;border-radius:10px;padding:11px 12px;font:inherit;font-weight:650;cursor:pointer}
+.primary{background:var(--blue);color:white}.secondary{background:#e2e8f0;color:#172033}
+input[type=search]{width:100%;padding:12px;border:1px solid var(--line);border-radius:10px;font:inherit;background:white;margin-bottom:12px}
+.season{background:var(--card);border:1px solid var(--line);border-radius:14px;margin:12px 0;overflow:hidden}
+.season-head{padding:14px 15px;display:flex;justify-content:space-between;align-items:center;gap:12px;background:#fff;cursor:pointer}
+.season-head h2{font-size:1.05rem;margin:0}
+.small{font-size:.82rem;color:var(--muted)}
+.episodes{padding:0 14px 12px}
+.ep{display:flex;align-items:flex-start;gap:10px;padding:11px 2px;border-top:1px solid #edf1f7}
+.ep input{width:20px;height:20px;flex:0 0 20px;accent-color:var(--blue);margin-top:1px}
+.ep label{line-height:1.35;flex:1;cursor:pointer}
+.ep.done label{color:#64748b;text-decoration:line-through}
+.badge{font-size:.75rem;background:#e0e7ff;color:#3730a3;padding:3px 7px;border-radius:999px;white-space:nowrap}
+.note{font-size:.85rem;color:var(--muted);line-height:1.5}
+footer{text-align:center;color:var(--muted);font-size:.8rem;padding:20px}
+.hidden{display:none!important}
+@media(min-width:650px){.toolbar{grid-template-columns:repeat(4,1fr)}}
+</style>
+</head>
+<body>
+<header>
+  <h1>🗡️ Mi lista de Hora de Aventuras</h1>
+  <p>Marca los capítulos que ya has visto. Tu progreso se guarda en este navegador.</p>
+  <div class="progress-wrap">
+    <div class="progress-top"><span>Progreso total</span><span id="progressText">0 de 283</span></div>
+    <progress id="progress" value="0" max="283"></progress>
+  </div>
+</header>
+<main>
+  <div class="toolbar">
+    <button class="primary" id="installBtn">➕ Añadir a inicio</button>
+    <button class="secondary" id="toggleAll">Abrir/cerrar temporadas</button>
+    <button class="secondary" id="exportBtn">Exportar progreso</button>
+    <button class="secondary" id="resetBtn">Borrar marcas</button>
+  </div>
+  <input type="search" id="search" placeholder="Buscar un capítulo o temporada…" aria-label="Buscar capítulos">
+  <p class="note">Nota: esta lista incluye títulos conocidos de la serie original. En algunos países o plataformas cambia la numeración y el nombre de ciertos capítulos. El progreso se guarda en este dispositivo y navegador.</p>
+  <div id="list"></div>
+  <footer>Tu aventura, capítulo a capítulo ⭐</footer>
+</main>
+<script>
+const seasons = [
+["Temporada 1",[
+"Pánico en la fiesta de pijamas","Apuros en el espacio bultos","Prisioneros del amor","Trompi","¡El Enchiridión!","El cantarín","Ricardio el corazón","Hora de empresarios","Mis dos personas favoritas","Recuerdos del monte Boom Boom","El mago","Desahuciados","La ciudad de los ladrones","El jardín de la bruja","¿Qué es la vida?","Un mar de miedo","Campanas de boda","La mazmorra","El duque","La ciudad de los raritos","Donny","El lacayo","Fantaseando en un día lluvioso","¿Qué habéis hecho?","Su héroe","El triturador"]],
+["Temporada 2",[
+"Vino de la Nochesfera","Los ojos","Lealtad al rey","Sangre bajo la piel","Cuenta cuentos","Amor lento","Energía animal","Los cristales del poder","Las otras tartas","Cortarle el pelo a una mujer","La cámara de las cuchillas heladas","Los padres de ella","Las vainas","El rey silencioso","El verdadero Finn","Los guardianes de la luz solar","Muerte florida","Susana Fuerte","El tren del misterio","Ven conmigo","Las entrañas de la bestia","El límite","Videocreadores","Locura mortal (1.ª parte)","Retroceso mortal (2.ª parte)","Huella de calor"]],
+["Temporada 3",[
+"Conquista de la ciudad","Morituri te salutamus","Memoria de un recuerdo","Árbol de troncos","El monstruo","El armario de Marceline","Baja el volumen","El fantasma de la fiesta de pijamas","Fionna y Cake","¿Qué faltaba?","Otra forma","El ayudante de la princesa","Gracias","El asesino","Sin parar","No puedes hacer nada","Hora de negocios","La nueva frontera","Mala suerte","Regreso a la Nochesfera","El monstruo de la montaña","Paper Pete","Otro camino","Los grandes misterios","Gracias por la manzana","Incendio"]],
+["Temporada 4",[
+"Caliente al tacto","Cinco historias cortas","Web extraña","Sueños de amor","El rey gusano","Más allá de este reino","Inmortalidad","Princesa monstruo","Día de lluvia","Goliad","Misterio del jardín","Princesa galleta","Ricky el rey","¿Quién ganaría?","El hijo de Marte","Loco de amor","Regreso a la Nochesfera (parte 2)","Reino de la montaña","Reino de los ladrones","La caja del rey","Papá de Marceline","En tus huellas","El pretendiente","Igualdad","Soy tu problema","El lich"]],
+["Temporada 5",[
+"Finn el humano","Jake el perro","Cinco cuentos más cortos","Regreso a la Nochesfera (parte 3)","Davey","El pozo","Poder animal","Misterio de la montaña","Todos los pequeños","Cielo en llamas","Despertar","Escape de la ciudadela","El lich (continuación)","Simón y Marcy","Un globo de oro","Puhoy","BMO perdido","James Baxter el caballo","El pretendiente","Shh!","El gran hombre pájaro","El tren de mazmorra","El agujero","Amor de almohada","Glitch es un glitch","La fiesta es siempre","Los pretendientes","La princesa del espacio bultos","El príncipe que quería todo","Una película de terror","El diario de Marceline","Caja de locuras","El más allá","El salón de Egress","La fiesta de cumpleaños","El refrigerador de mamá","El agujero del misterio","El príncipe del espacio bultos","El pequeño monstruo","El cometa","El oscuro púrpura","La visita","Cita con una diosa","El regreso de la princesa","La lista de la muerte","Billy's Bucket List","El árbol de la bruja"]],
+["Temporada 6",Array.from({length:43},(_,i)=>`Capítulo ${i+1} (añade o corrige el título)` )],
+["Temporada 7",Array.from({length:26},(_,i)=>`Capítulo ${i+1} (añade o corrige el título)` )],
+["Temporada 8",Array.from({length:27},(_,i)=>`Capítulo ${i+1} (añade o corrige el título)` )],
+["Temporada 9",Array.from({length:14},(_,i)=>`Capítulo ${i+1} (añade o corrige el título)` )],
+["Temporada 10",Array.from({length:13},(_,i)=>`Capítulo ${i+1} (añade o corrige el título)` )]
+];
+const total=seasons.reduce((n,s)=>n+s[1].length,0);
+const list=document.getElementById('list');
+const key='horaAventurasVisto_v1';
+let checked={}; let allOpen=true;
+try{checked=JSON.parse(localStorage.getItem(key)||'{}')||{}}catch(e){}
+function save(){try{localStorage.setItem(key,JSON.stringify(checked))}catch(e){}}
+function updateProgress(){
+ const done=Object.values(checked).filter(Boolean).length;
+ document.getElementById('progressText').textContent=`${done} de ${total}`;
+ document.getElementById('progress').max=total;
+ document.getElementById('progress').value=done;
+ document.querySelectorAll('.season').forEach((el,i)=>{
+  const count=seasons[i][1].filter((_,j)=>checked[`${i}-${j}`]).length;
+  const b=el.querySelector('.badge');if(b)b.textContent=`${count}/${seasons[i][1].length}`;
+ });
+}
+function render(){
+ const q=document.getElementById('search').value.trim().toLocaleLowerCase('es');
+ list.innerHTML='';
+ seasons.forEach((s,si)=>{
+  const matching=s[1].map((name,ei)=>({name,ei})).filter(x=>!q||x.name.toLocaleLowerCase('es').includes(q)||s[0].toLocaleLowerCase('es').includes(q));
+  if(!matching.length)return;
+  const section=document.createElement('section');section.className='season';
+  const head=document.createElement('div');head.className='season-head';
+  const title=document.createElement('h2');title.textContent=s[0];
+  const badge=document.createElement('span');badge.className='badge';badge.textContent='0/0';
+  head.append(title,badge);
+  const eps=document.createElement('div');eps.className='episodes';if(!allOpen)eps.classList.add('hidden');
+  head.addEventListener('click',()=>eps.classList.toggle('hidden'));
+  matching.forEach(({name,ei})=>{
+   const id=`${si}-${ei}`;const row=document.createElement('div');row.className='ep'+(checked[id]?' done':'');
+   const cb=document.createElement('input');cb.type='checkbox';cb.id='ep-'+id;cb.checked=!!checked[id];
+   cb.addEventListener('change',()=>{checked[id]=cb.checked;row.classList.toggle('done',cb.checked);save();updateProgress()});
+   const label=document.createElement('label');label.htmlFor=cb.id;label.textContent=`${ei+1}. ${name}`;
+   row.append(cb,label);eps.append(row);
+  });
+  section.append(head,eps);list.append(section);
+ });
+ updateProgress();
+}
+document.getElementById('search').addEventListener('input',render);
+document.getElementById('toggleAll').addEventListener('click',()=>{allOpen=!allOpen;render()});
+document.getElementById('resetBtn').addEventListener('click',()=>{if(confirm('¿Seguro que quieres borrar todas las marcas?')){checked={};save();render()}});
+document.getElementById('exportBtn').addEventListener('click',()=>{
+ const data=JSON.stringify({checked,exportedAt:new Date().toISOString()},null,2);
+ const blob=new Blob([data],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='mi-progreso-hora-de-aventuras.json';a.click();URL.revokeObjectURL(url);
+});
+let deferredPrompt=null;
+const installBtn=document.getElementById('installBtn');
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;installBtn.textContent='➕ Instalar en inicio'});
+installBtn.addEventListener('click',async()=>{
+ if(deferredPrompt){deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;return}
+ alert('En Android: abre este archivo con Chrome, toca ⋮ y busca “Añadir a pantalla de inicio” o “Instalar aplicación”. Si esa opción no aparece, guarda el archivo en el móvil y crea un acceso directo desde el navegador o gestor de archivos.');
+});
+render();
+</script>
+</body>
+</html>
